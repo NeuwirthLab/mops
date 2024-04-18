@@ -56,5 +56,13 @@ void write_dense_matrix(const Matrix<T> &matrix,
 	file.close();
 }
 
-}  // namespace mops
+}
+
+void copy_file(const std::string &src, const std::string &dst) {
+    std::ifstream src_file(src, std::ios::binary);
+    std::ofstream dst_file(dst, std::ios::binary);
+    dst_file << src_file.rdbuf();
+}
+
+// namespace mops
 #endif
