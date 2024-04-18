@@ -6,6 +6,7 @@ bsize="200k 20m 1g 2g"
 
 output_path="/srv/hdd/ior_out/test.out"
 
+. /home/luser/Repos/spack/share/spack/setup-env.sh
 
 spack load darshan-runtime@3.4.4
 export DARSHAN_LOG_DIR_PATH=.

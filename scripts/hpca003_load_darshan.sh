@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /home/luser/Repos/spack/share/spack/setup-env.sh
+
 # Load the Darshan module
 spack load darshan-runtime@3.4.4
 export DARSHAN_LOG_DIR_PATH=.
