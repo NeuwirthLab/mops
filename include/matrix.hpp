@@ -27,6 +27,7 @@ class Matrix {
 	[[nodiscard]] inline int get_cols() const { return _cols; }
 	inline auto begin() { return _data.begin(); }
 	inline auto end() { return _data.end(); }
+	inline auto data() {return _data.data();}
 };
 }  // namespace mops
 #endif
