@@ -1,13 +1,23 @@
 #include <getopt.h>
-//#include <omp.h>
-#include <vector>
-#include <chrono>
-#include <random>
-#include <filesystem>
 #include <algorithm>
-#include <iostream>
+#include <chrono>
+#include <filesystem>
+#include <random>
+#include <thread>
+#include <vector>
 
 #include "mops.hpp"
+
+#ifdef WITH_TACO
+#include "taco.h"
+#endif
+
+#if defined(WITH_LIKWID) || defined(WITH_OPENMP)
+#include <omp.h>
+#endif
+#ifdef WITH_LIKWID
+#include <likwid-marker.h>
+#endif
 
 namespace fs = std::filesystem;
 using ValueType = double;
@@ -18,7 +28,7 @@ static int tacoed = false;
 static int generator = false;
 
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 	fs::path input_file{};
 	fs::path output_file{};
     fs::path write_file_path{};
@@ -63,7 +73,10 @@ int main(int argc, char** argv){
 				output_file = optarg;
 				break;
 			case 't':
-				//omp_set_num_threads(std::atoi(optarg));
+
+#if defined(WITH_LIKWID) || defined(WITH_OPENMP)
+				omp_set_num_threads(std::atoi(optarg));
+#endif
 				break;
             case 'l':
                 read_file_path = optarg;
@@ -76,7 +89,6 @@ int main(int argc, char** argv){
 				std::terminate();
 		}
 	}
-
     bool generator=false;
     if (generator) {
         std::string filename = mops::get_file_name_from_rows_and_cols(rows, cols, true);
@@ -86,7 +98,9 @@ int main(int argc, char** argv){
         if (!copy_flag) {
             std::cout << "Writing the matrix file to: " << write_file_path << std::endl;
             if (tacoed){
+#ifdef WITH_TACO
                  taco::Tensor<double> m = mops::taco_generate_dense_matrix<double>(rows, cols,1);
+
 #if defined(BENCHMARK)
                 auto t_begin = std::chrono::high_resolution_clock::now();
 #endif
@@ -96,8 +110,9 @@ int main(int argc, char** argv){
             auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_begin);
             printFileStats(write_file_path, rows, cols, duration);
 #endif
+#endif
             }else{
-                mops::Matrix<double> m = null;
+                mops::Matrix<double> m = mops::generate_dense_matrix<double>(rows, cols,1);
 #if defined(BENCHMARK)
                 auto t_begin = std::chrono::high_resolution_clock::now();
 #endif
@@ -112,8 +127,10 @@ int main(int argc, char** argv){
         } else {
             std::cout << "Copying the matrix file from: " << read_file_path << " to "<< write_file_path << std::endl;
             if (tacoed){
+#ifdef WITH_TACO
                 taco::Tensor<double> m = mops::taco_generate_dense_matrix<double>(rows, cols, 1);
                 taco::write(read_file_path, m);
+#endif
             }else {
                 mops::Matrix<double> matrix = mops::generate_dense_matrix<double>(rows, cols,1);
                 mops::write_dense_matrix(matrix, read_file_path);
@@ -130,5 +147,58 @@ int main(int argc, char** argv){
 #endif
         }
     }
+
+	auto t0 = Clock::now();
+	mops::Matrix<ValueType> A = mops::read_dense_matrix<ValueType>(input_file);
+	Duration d = Clock::now() - t0;
+
+	std::cout << "Read time: " << d.count() << " [s]\n";
+	std::cout << "Input file size: " << fs::file_size(input_file) << " [b]\n";
+	std::cout << "Read BW: " << fs::file_size(input_file) / d.count()
+	          << " [b/s]\n";
+
+	std::vector<ValueType> x(A.get_cols());
+	std::vector<ValueType> y(A.get_rows());
+	std::vector<ValueType> z(A.get_rows());
+
+	const ValueType alpha{42.0};
+	const ValueType beta{33.0};
+
+	std::default_random_engine rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<ValueType> unif(0, 100);
+	auto generator_lambda = [&]() { return unif(gen); };
+
+	std::generate(x.begin(), x.end(), generator_lambda);
+	std::generate(z.begin(), z.end(), generator_lambda);
+
+#ifdef WITH_LIKWID
+	LIKWID_MARKER_INIT;
+
+#pragma omp parallel
+	{
+		LIKWID_MARKER_THREADINIT;
+		LIKWID_MARKER_REGISTER("mat_vec");
+	}
+
+#pragma omp parallel
+	{
+		LIKWID_MARKER_START("mat_vec");
+		mops::mat_vec(alpha, beta, &y, &A, &x, &z);
+		LIKWID_MARKER_STOP("mat_vec");
+	}
+	LIKWID_MARKER_CLOSE;
+#else
+	mops::mat_vec(alpha, beta, &y, &A, &x, &z);
+#endif
+
+	t0 = Clock::now();
+	mops::write_dense_vector(y, output_file);
+	d = Clock::now() - t0;
+
+	std::cout << "Write time: " << d.count() << " [s]\n";
+	std::cout << "Output file size: " << fs::file_size(output_file) << " [b]\n";
+	std::cout << "Write BW: " << fs::file_size(output_file) / d.count()
+	          << " [b/s]\n";
 	return 0;
 }

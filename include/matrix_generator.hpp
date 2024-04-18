@@ -6,11 +6,12 @@
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
-#include "taco.h"
 #include "matrix.hpp"
+#ifdef WITH_TACO
+#include "taco.h"
+#endif
 
-namespace mops {
-
+namespace mops{
     template<typename T>
     Matrix<T> generate_dense_matrix(int rows, int cols, int max_value) {
         Matrix<T> matrix(rows, cols);
@@ -26,7 +27,7 @@ namespace mops {
         return matrix;
     }
 
-
+#ifdef WITH_TACO
     template<typename T>
     taco::Tensor<T> taco_generate_dense_matrix(int rows, int cols, int max_value) {
         taco::Format dm({taco::Dense, taco::Dense});
@@ -52,5 +53,6 @@ namespace mops {
         m.pack();
         return m;
     }
+#endif
 }
 #endif

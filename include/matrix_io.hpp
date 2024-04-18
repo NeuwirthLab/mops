@@ -10,10 +10,10 @@
 
 namespace mops {
 
-    template<typename T>
-    Matrix<T> read_dense_matrix(const std::string &file_name) {
-        std::ifstream file(file_name);
 
+template <typename T>
+Matrix<T> read_dense_matrix(std::string& file_name) {
+	std::ifstream file(file_name);
         if (!file.is_open()) {
             std::cerr << "Error opening file." << std::endl;
             std::terminate();
@@ -56,7 +56,7 @@ namespace mops {
     }
 
     template<typename T>
-    void write_dense_vector(const std::vector<T> &vec,
+    void write_dense_vector(std::vector<T> &vec,
                             const std::string &file_name) {
         std::ofstream file(file_name);
         file << "%%MatrixMarket matrix array real general" << std::endl;
@@ -73,6 +73,5 @@ namespace mops {
         std::ofstream dst_file(dst, std::ios::binary);
         dst_file << src_file.rdbuf();
     }
-
-}// namespace mops
+} // namespace mops
 #endif
