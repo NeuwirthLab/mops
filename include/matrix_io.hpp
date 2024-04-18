@@ -12,7 +12,7 @@ namespace mops {
 
 
 template <typename T>
-Matrix<T> read_dense_matrix(std::string& file_name) {
+Matrix<T> read_dense_matrix(const std::string& file_name) {
 	std::ifstream file(file_name);
         if (!file.is_open()) {
             std::cerr << "Error opening file." << std::endl;

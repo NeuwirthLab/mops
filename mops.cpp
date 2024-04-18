@@ -89,7 +89,6 @@ int main(int argc, char** argv) {
 				std::terminate();
 		}
 	}
-    bool generator=false;
     if (generator) {
         std::string filename = mops::get_file_name_from_rows_and_cols(rows, cols, true);
         write_file_path += filename;
@@ -146,34 +145,33 @@ int main(int argc, char** argv) {
         printFileStats(write_file_path, rows, cols, duration);
 #endif
         }
-    }
+    }else {
+        auto t0 = Clock::now();
+        mops::Matrix<ValueType> A = mops::read_dense_matrix<ValueType>(input_file);
+        Duration d = Clock::now() - t0;
 
-	auto t0 = Clock::now();
-	mops::Matrix<ValueType> A = mops::read_dense_matrix<ValueType>(input_file);
-	Duration d = Clock::now() - t0;
+        std::cout << "Read time: " << d.count() << " [s]\n";
+        std::cout << "Input file size: " << fs::file_size(input_file) << " [b]\n";
+        std::cout << "Read BW: " << static_cast<double>(fs::file_size(input_file))/ d.count()
+                  << " [b/s]\n";
 
-	std::cout << "Read time: " << d.count() << " [s]\n";
-	std::cout << "Input file size: " << fs::file_size(input_file) << " [b]\n";
-	std::cout << "Read BW: " << fs::file_size(input_file) / d.count()
-	          << " [b/s]\n";
+        std::vector<ValueType> x(A.get_cols());
+        std::vector<ValueType> y(A.get_rows());
+        std::vector<ValueType> z(A.get_rows());
 
-	std::vector<ValueType> x(A.get_cols());
-	std::vector<ValueType> y(A.get_rows());
-	std::vector<ValueType> z(A.get_rows());
+        const ValueType alpha{42.0};
+        const ValueType beta{33.0};
 
-	const ValueType alpha{42.0};
-	const ValueType beta{33.0};
+        std::default_random_engine rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<ValueType> unif(0, 100);
+        auto generator_lambda = [&]() { return unif(gen); };
 
-	std::default_random_engine rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<ValueType> unif(0, 100);
-	auto generator_lambda = [&]() { return unif(gen); };
-
-	std::generate(x.begin(), x.end(), generator_lambda);
-	std::generate(z.begin(), z.end(), generator_lambda);
+        std::generate(x.begin(), x.end(), generator_lambda);
+        std::generate(z.begin(), z.end(), generator_lambda);
 
 #ifdef WITH_LIKWID
-	LIKWID_MARKER_INIT;
+        LIKWID_MARKER_INIT;
 
 #pragma omp parallel
 	{
@@ -189,16 +187,17 @@ int main(int argc, char** argv) {
 	}
 	LIKWID_MARKER_CLOSE;
 #else
-	mops::mat_vec(alpha, beta, &y, &A, &x, &z);
+        mops::mat_vec(alpha, beta, &y, &A, &x, &z);
 #endif
 
-	t0 = Clock::now();
-	mops::write_dense_vector(y, output_file);
-	d = Clock::now() - t0;
+        t0 = Clock::now();
+        mops::write_dense_vector(y, output_file);
+        d = Clock::now() - t0;
 
-	std::cout << "Write time: " << d.count() << " [s]\n";
-	std::cout << "Output file size: " << fs::file_size(output_file) << " [b]\n";
-	std::cout << "Write BW: " << fs::file_size(output_file) / d.count()
-	          << " [b/s]\n";
+        std::cout << "Write time: " << d.count() << " [s]\n";
+        std::cout << "Output file size: " << fs::file_size(output_file) << " [b]\n";
+        std::cout << "Write BW: " << fs::file_size(output_file) / d.count()
+                  << " [b/s]\n";
+    }
 	return 0;
 }
