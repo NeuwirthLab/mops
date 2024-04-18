@@ -1,17 +1,17 @@
 #ifndef MATRIX_IO_HPP
 #define MATRIX_IO_HPP
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <exception>
 
 #include "matrix.hpp"
 
 namespace mops {
 
 template <typename T>
-Matrix<T> read_dense_matrix(const std::string &filename) {
+Matrix<T> read_dense_matrix(const std::string& file_name) {
 	std::ifstream file(filename);
 
 	if (!file.is_open()) {
@@ -34,9 +34,9 @@ Matrix<T> read_dense_matrix(const std::string &filename) {
 
 	std::istringstream iss(line);
 	iss >> rows >> cols;
-	Matrix<T> matrix(rows,cols);
-	
-	for (auto &e : matrix) {
+	Matrix<T> matrix(rows, cols);
+
+	for (auto& e : matrix) {
 		file >> e;
 	}
 	file.close();
@@ -44,24 +44,34 @@ Matrix<T> read_dense_matrix(const std::string &filename) {
 }
 
 template <typename T>
-void write_dense_matrix(const Matrix<T> &matrix,
-			const std::string &file_name) {
+void write_dense_matrix(const Matrix<T>& matrix, const std::string& file_name) {
 	std::ofstream file(file_name);
 	file << "%%MatrixMarket matrix array real general" << std::endl;
 	file << matrix.get_rows() << " " << matrix.get_cols() << std::endl;
 
-	for (auto &e : matrix) {
+	for (auto& e : matrix) {
 		file << e << std::endl;
 	}
 	file.close();
 }
 
+template <typename T>
+void write_dense_vector(const std::vector<T>& vec,
+                        const std::string& file_name) {
+	std::ofstream file(file_name);
+	file << "%%MatrixMarket matrix array real general" << std::endl;
+	file << vec.size() << std::endl;
+
+	for (auto& e : vec) {
+		file << e << std::endl;
+	}
+	file.close();
 }
 
-void copy_file(const std::string &src, const std::string &dst) {
-    std::ifstream src_file(src, std::ios::binary);
-    std::ofstream dst_file(dst, std::ios::binary);
-    dst_file << src_file.rdbuf();
+void copy_file(const std::string& src, const std::string& dst) {
+	std::ifstream src_file(src, std::ios::binary);
+	std::ofstream dst_file(dst, std::ios::binary);
+	dst_file << src_file.rdbuf();
 }
 
 // namespace mops
