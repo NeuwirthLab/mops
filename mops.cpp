@@ -12,9 +12,7 @@
 #include <omp.h>
 #endif
 #ifdef WITH_LIKWID
-#ifdef LIKWID_PERF
 #include <likwid-marker.h>
-#endif
 #endif
 
 namespace fs = std::filesystem;
@@ -94,7 +92,7 @@ int main(int argc, char** argv) {
 #pragma omp parallel
 	{
 		LIKWID_MARKER_START("mat_vec");
-		mops::mat_vec(alpha, beta, y, A, x, z);
+		mops::mat_vec(alpha, beta, &y, &A, &x, &z);
 		LIKWID_MARKER_STOP("mat_vec");
 	}
 	LIKWID_MARKER_CLOSE;
