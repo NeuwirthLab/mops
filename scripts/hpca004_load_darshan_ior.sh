@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Define the parameters
+#tsize="4b 128b 512b 4k 128k 512k 1m 2m"
 tsize="4k 32k 128k 512k 1m 2m"
+#bsize="2m 20m 1g"
 bsize="200k 20m 1g 2g"
 output_path="/hdd-share/ior_out/test.out"
 # for HPCA003
