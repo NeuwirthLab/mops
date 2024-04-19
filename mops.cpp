@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 	int cols, rows;
 	int threads = std::thread::hardware_concurrency();
 
-	const char* const short_opts = "i:o:t:c:r";
+	const char* const short_opts = "i:o:c:r:l:s:t:";
 
 	static const struct option long_opts[] = {
 	    {"input", required_argument, nullptr, 'i'},
@@ -71,20 +71,27 @@ int main(int argc, char** argv) {
 			case 'o':
 				output_file = optarg;
 				break;
-			case 't':
-
-#if defined(WITH_LIKWID) || defined(WITH_OPENMP)
-				omp_set_num_threads(std::atoi(optarg));
-#endif
-				break;
 			case 'l':
 				read_file_path = optarg;
 				break;
 			case 's':
 				write_file_path = optarg;
 				break;
+            case 'c':
+                cols = std::stoi(optarg);
+                break;
+            case 'r':
+                rows = std::stoi(optarg);
+                break;
+            case 't':
+
+#if defined(WITH_LIKWID) || defined(WITH_OPENMP)
+                omp_set_num_threads(std::atoi(optarg));
+#endif
+                break;
 			default:
 				std::cerr << "Parameter unsupported\n";
+                std::cout << optarg << std::endl;
 				std::terminate();
 		}
 	}
@@ -111,23 +118,23 @@ int main(int argc, char** argv) {
 				auto duration =
 				    std::chrono::duration_cast<std::chrono::duration<double>>(
 				        t_end - t_begin);
-				printFileStats(write_file_path, rows, cols, duration);
+				mops::printFileStats(write_file_path, rows, cols, duration);
 #endif
 #endif
 			}
 			else {
 				mops::Matrix<double> m =
 				    mops::generate_dense_matrix<double>(rows, cols, 1);
-#if defined(BENCHMARK)
+#ifdef DEBUG
 				auto t_begin = std::chrono::high_resolution_clock::now();
 #endif
 				mops::write_dense_matrix(m, write_file_path);
-#if defined(BENCHMARK)
+#ifdef DEBUG
 				auto t_end = std::chrono::high_resolution_clock::now();
 				auto duration =
 				    std::chrono::duration_cast<std::chrono::duration<double>>(
 				        t_end - t_begin);
-				printFileStats(write_file_path, rows, cols, duration);
+				mops::printFileStats(write_file_path, rows, cols, duration);
 #endif
 			}
 		}
@@ -146,24 +153,28 @@ int main(int argc, char** argv) {
 				    mops::generate_dense_matrix<double>(rows, cols, 1);
 				mops::write_dense_matrix(matrix, read_file_path);
 			}
-#if defined(BENCHMARK)
+#ifdef DEBUG
 			auto t_begin = std::chrono::high_resolution_clock::now();
 #endif
 			copy_file(read_file_path, write_file_path);
-#if defined(BENCHMARK)
+#ifdef DEBUG
 			auto t_end = std::chrono::high_resolution_clock::now();
 			auto duration =
 			    std::chrono::duration_cast<std::chrono::duration<double>>(
 			        t_end - t_begin);
-			printFileStats(write_file_path, rows, cols, duration);
+			mops::printFileStats(write_file_path, rows, cols, duration);
 #endif
 		}
 	}
 	else {
+#ifdef DEBUG
 		auto t0 = Clock::now();
+#endif
 		mops::Matrix<ValueType> A =
 		    mops::read_dense_matrix<ValueType>(input_file);
+#ifdef DEBUG
 		Duration d = Clock::now() - t0;
+
 
 		std::cout << "Read time: " << d.count() << " [s]\n";
 		std::cout << "Input file size: " << fs::file_size(input_file)
@@ -171,7 +182,7 @@ int main(int argc, char** argv) {
 		std::cout << "Read BW: "
 		          << static_cast<double>(fs::file_size(input_file)) / d.count()
 		          << " [b/s]\n";
-
+#endif
 		std::vector<ValueType> x(A.get_cols());
 		std::vector<ValueType> y(A.get_rows());
 		std::vector<ValueType> z(A.get_rows());
@@ -206,16 +217,20 @@ int main(int argc, char** argv) {
 #else
 		mops::mat_vec(alpha, beta, &y, &A, &x, &z);
 #endif
-
-		t0 = Clock::now();
+#ifdef DEBUG
+        t0 = Clock::now();
+#endif
 		mops::write_dense_vector(y, output_file);
+#ifdef DEBUG
 		d = Clock::now() - t0;
 
 		std::cout << "Write time: " << d.count() << " [s]\n";
 		std::cout << "Output file size: " << fs::file_size(output_file)
 		          << " [b]\n";
-		std::cout << "Write BW: " << fs::file_size(output_file) / d.count()
+		std::cout << "Write BW: " << static_cast<double>(fs::file_size(input_file)) / d.count()
 		          << " [b/s]\n";
+#endif
+
 	}
 	return 0;
 }
