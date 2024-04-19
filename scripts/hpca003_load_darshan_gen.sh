@@ -16,7 +16,7 @@ export DARSHAN_ENABLE_NONMPI=1
 # Loop through each combination of parameters
 for d in $dims; do
   echo "Running program with --rows=$d --cols=$d"
-  LD_PRELOAD=/home/luser/Repos/spack/opt/spack/linux-almalinux9-ivybridge/gcc-11.4.1/darshan-runtime-3.4.4-ykayvipyjq7hnrzq7qeqs5ekpn6nga4t/lib/libdarshan.so build/cmatrix_generator -i $input_path -o $output_path -c $d -r $d --copy
+  LD_PRELOAD=/home/luser/Repos/spack/opt/spack/linux-almalinux9-ivybridge/gcc-11.4.1/darshan-runtime-3.4.4-ykayvipyjq7hnrzq7qeqs5ekpn6nga4t/lib/libdarshan.so ../omp_build/mops -i $input_path -o $output_path -c $d -r $d --generator
   # ssh to remote machine and execute the consumer program
   # ssh -t user@remote_machine "LD_PRELOAD=/path_to_remote/lib/libdarshan.so /matrix_operations -i $output_path -o $output_path"
   echo "Done"
