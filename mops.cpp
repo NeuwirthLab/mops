@@ -209,12 +209,12 @@ int main(int argc, char** argv) {
 #pragma omp parallel
 		{
 			LIKWID_MARKER_START("mat_vec");
-			mops::mat_vec(alpha, beta, &y, &A, &x, &z);
+			mops::mat_vec(alpha, beta, y, A, x, z);
 			LIKWID_MARKER_STOP("mat_vec");
 		}
 		LIKWID_MARKER_CLOSE;
 #else
-		mops::mat_vec(alpha, beta, &y, &A, &x, &z);
+		mops::mat_vec(alpha, beta, y, A, x, z);
 #endif
 #ifdef DEBUG
 		t0 = Clock::now();
