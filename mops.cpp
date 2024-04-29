@@ -77,21 +77,21 @@ int main(int argc, char** argv) {
 			case 's':
 				write_file_path = optarg;
 				break;
-            case 'c':
-                cols = std::stoi(optarg);
-                break;
-            case 'r':
-                rows = std::stoi(optarg);
-                break;
-            case 't':
+			case 'c':
+				cols = std::stoi(optarg);
+				break;
+			case 'r':
+				rows = std::stoi(optarg);
+				break;
+			case 't':
 
 #if defined(WITH_LIKWID) || defined(WITH_OPENMP)
-                omp_set_num_threads(std::atoi(optarg));
+				omp_set_num_threads(std::atoi(optarg));
 #endif
-                break;
+				break;
 			default:
 				std::cerr << "Parameter unsupported\n";
-                std::cout << optarg << std::endl;
+				std::cout << optarg << std::endl;
 				std::terminate();
 		}
 	}
@@ -175,7 +175,6 @@ int main(int argc, char** argv) {
 #ifdef DEBUG
 		Duration d = Clock::now() - t0;
 
-
 		std::cout << "Read time: " << d.count() << " [s]\n";
 		std::cout << "Input file size: " << fs::file_size(input_file)
 		          << " [b]\n";
@@ -218,7 +217,7 @@ int main(int argc, char** argv) {
 		mops::mat_vec(alpha, beta, &y, &A, &x, &z);
 #endif
 #ifdef DEBUG
-        t0 = Clock::now();
+		t0 = Clock::now();
 #endif
 		mops::write_dense_vector(y, output_file);
 #ifdef DEBUG
@@ -227,10 +226,10 @@ int main(int argc, char** argv) {
 		std::cout << "Write time: " << d.count() << " [s]\n";
 		std::cout << "Output file size: " << fs::file_size(output_file)
 		          << " [b]\n";
-		std::cout << "Write BW: " << static_cast<double>(fs::file_size(input_file)) / d.count()
+		std::cout << "Write BW: "
+		          << static_cast<double>(fs::file_size(input_file)) / d.count()
 		          << " [b/s]\n";
 #endif
-
 	}
 	return 0;
 }
