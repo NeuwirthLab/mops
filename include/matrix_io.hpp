@@ -66,23 +66,38 @@ Matrix<T> read_dense_matrix(const std::string& file_name) {
             file << e << std::endl;
         }
         file.close();
-    }
+    };
 
     template<typename T>
-    void write_sparse_matrix_market(const std::string& filename, int rows, int cols, const SparseMatrix<T>& matrix) {
-        std::ofstream file(filename);
-        if (!file.is_open()) {
-            std::cerr << "Error: Unable to open file: " << filename << std::endl;
-            return;
-        }
-
+    void write_sparse_matrix(SparseMatrixCoo<T> &matrix, const std::string &file_name) {
+        std::ofstream file(file_name);
         file << "%%MatrixMarket matrix coordinate real general" << std::endl;
-        file << rows << " " << cols << " " << matrix.size() << std::endl;
-        for (const auto& entry : matrix) {
-            file << entry.row + 1 << " " << entry.col + 1 << " " << entry.value << std::endl;
+        file << matrix.get_rows() << " " << matrix.get_cols() << " " << matrix.get_num_non_zero() << std::endl;
+        for (auto i=0; i < matrix.get_num_non_zero(); ++i) {
+            file << matrix.get_row(i) + 1 << " " << matrix.get_col(i) + 1 << " " << matrix.get_data(i) << std::endl;
         }
-        file.close();
-    }
+        /*
+        auto begin = matrix.csr_begin();
+        auto row_begin = std::get<0>(begin);
+        auto col_begin = std::get<1>(begin);
+        auto data_begin = std::get<2>(begin);
+
+        auto end = matrix.csr_end();
+        auto row_end = std::get<0>(end);
+        auto col_end = std::get<1>(end);
+        auto data_end = std::get<2>(end);
+
+        for(auto it = data_begin; it != data_end; ++it){
+            file << *row_begin + 1 << " " << *col_begin + 1 << " " << *it << std::endl;
+            ++row_begin;
+            ++col_begin;
+        }
+                for (int i = 0; i < matrix.get_num_non_zero(); ++i) {
+                    file << row_begin[i]  << " " << col_begin[i]  << " " << data_begin[i] << std::endl;
+                }
+
+        */
+    };
 
     void copy_file(const std::string &src, const std::string &dst) {
         std::ifstream src_file(src, std::ios::binary);

@@ -28,6 +28,7 @@ namespace mops {
         return matrix;
     }
 
+    /*
     template<typename T>
     SparseMatrix<T> generate_sparse_matrix(int rows, int cols, T max_value, int non_zeros) {
         SparseMatrix<T> matrix(rows, cols, non_zeros);
@@ -48,12 +49,13 @@ namespace mops {
         }
         return matrix;
     }
+*/
 
     template<typename T>
-    SparseMatrix<T> generate_random_number_vector(int nnz, int cols, int rows, T max_value){
+    SparseMatrixCoo<T> generate_sparse_matrix_coo(int rows, int cols, int nnz, T max_value){
         std::vector<int> col_indices(cols);
         std::vector<int> row_indices(rows);
-        SparseMatrix<T> matrix(rows, cols, nnz);
+        SparseMatrixCoo<T> matrix(rows, cols, nnz);
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -63,12 +65,12 @@ namespace mops {
         std::shuffle(row_indices.begin(), row_indices.end(), std::mt19937(std::random_device()()));
 
         if (std::is_same<T, int>()) {
-            std::uniform_int_distribution<T> val_dist(0, max_value);
+            std::uniform_int_distribution<int> val_dist(0, max_value);
             for(int i= 0; i < nnz; ++i){
                 matrix.push_back(row_indices[i], col_indices[i], val_dist(gen));
             }
         }else {
-            std::uniform_real_distribution<T> val_dist(0, max_value);
+            std::uniform_real_distribution<double> val_dist(0, max_value);
             for(int i= 0; i < nnz; ++i){
                 matrix.push_back(row_indices[i], col_indices[i], val_dist(gen));
         }

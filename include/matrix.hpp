@@ -48,7 +48,7 @@ namespace mops {
 
 
     template<typename T>
-    class SparseMatrix {
+    class SparseMatrixCoo {
         std::vector<int> _rows;
         std::vector<int> _cols;
         std::vector<T> _data;
@@ -58,45 +58,25 @@ namespace mops {
 
     public:
         MatrixType type = MatrixType::sparse;
-
-        SparseMatrix(const int rows_, const int cols_, const int num_non_zero_)
+        SparseMatrixCoo(const int rows_, const int cols_, const int num_non_zero_)
                 : _num_rows{rows_}, _num_cols{cols_}, _num_non_zero{num_non_zero_} {
             _rows.reserve(num_non_zero_ + 1);
             _cols.reserve(num_non_zero_);
             _data.reserve(num_non_zero_);
         }
 
-        [[nodiscard]] inline const T &operator()(const int i_, const int j_) const {
-            for (int i = 0; i < _num_non_zero; ++i) {
-                if (_rows[i] == i_ && _cols[i] == j_) {
-                    return _data[i];
-                }
-            }
-            return 0;
-        }
-
-        [[nodiscard]] inline T &operator()(const int i_, const int j_) {
-            for (int i = 0; i < _num_non_zero; ++i) {
-                if (_rows[i] == i_ && _cols[i] == j_) {
-                    return _data[i];
-                }
-            }
-            return 0;
-        }
-
+        [[nodiscard]] inline int get_rows() const { return _num_rows; }
+        [[nodiscard]] inline int get_cols() const { return _num_cols; }
         [[nodiscard]] inline int get_num_non_zero() const { return _num_non_zero; }
+        [[nodiscard]] inline int get_row(int i) const { return _rows[i]; }
+        [[nodiscard]] inline int get_col(int i) const { return _cols[i]; }
+        [[nodiscard]] inline T get_data(int i) const { return _data[i]; }
 
         inline auto begin() { return _data.begin(); }
-
         inline auto end() { return _data.end(); }
-
         inline auto data() { return _data.data(); }
-
         inline auto rows() { return _rows.data(); }
-
         inline auto cols() { return _cols.data(); }
-
-        inline auto csr_begin() { return {_rows.begin(), _cols.begin(), _data.begin()}; }
 
         inline void push_back(int row, int col, double value) {
             _rows.push_back(row);

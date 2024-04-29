@@ -28,6 +28,13 @@ namespace mops {
         std::cout << "Bandwidth (Byte/s): " << f_size / duration.count() << std::endl;
     }
 
+    int getNumNonZero(int rows, int cols, double density) {
+        int number_of_elements = 0;
+        number_of_elements = rows * cols;
+        return static_cast<int>(number_of_elements * density);
+
+    }
+
 }
 
 
