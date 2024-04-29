@@ -68,6 +68,22 @@ Matrix<T> read_dense_matrix(const std::string& file_name) {
         file.close();
     }
 
+    template<typename T>
+    void write_sparse_matrix_market(const std::string& filename, int rows, int cols, const SparseMatrix<T>& matrix) {
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "Error: Unable to open file: " << filename << std::endl;
+            return;
+        }
+
+        file << "%%MatrixMarket matrix coordinate real general" << std::endl;
+        file << rows << " " << cols << " " << matrix.size() << std::endl;
+        for (const auto& entry : matrix) {
+            file << entry.row + 1 << " " << entry.col + 1 << " " << entry.value << std::endl;
+        }
+        file.close();
+    }
+
     void copy_file(const std::string &src, const std::string &dst) {
         std::ifstream src_file(src, std::ios::binary);
         std::ofstream dst_file(dst, std::ios::binary);
