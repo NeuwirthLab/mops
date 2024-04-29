@@ -214,12 +214,12 @@ int main(int argc, char** argv) {
         #endif
                 }
             } else {
-        #ifdef DEBUG
+#ifdef DEBUG
                 auto t0 = Clock::now();
-        #endif
+#endif
                 mops::Matrix<ValueType> A =
                         mops::read_dense_matrix<ValueType>(input_file);
-        #ifdef DEBUG
+#ifdef DEBUG
                 Duration d = Clock::now() - t0;
 
                 std::cout << "Read time: " << d.count() << " [s]\n";
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
                 std::cout << "Read BW: "
                           << static_cast<double>(fs::file_size(input_file)) / d.count()
                           << " [b/s]\n";
-        #endif
+#endif
                 std::vector<ValueType> x(A.get_cols());
                 std::vector<ValueType> y(A.get_rows());
                 std::vector<ValueType> z(A.get_rows());
@@ -244,30 +244,30 @@ int main(int argc, char** argv) {
                 std::generate(x.begin(), x.end(), generator_lambda);
                 std::generate(z.begin(), z.end(), generator_lambda);
 
-        #ifdef WITH_LIKWID
+#ifdef WITH_LIKWID
                 LIKWID_MARKER_INIT;
 
-        #pragma omp parallel
-                {
-                    LIKWID_MARKER_THREADINIT;
-                    LIKWID_MARKER_REGISTER("mat_vec");
-                }
+#pragma omp parallel
+		{
+			LIKWID_MARKER_THREADINIT;
+			LIKWID_MARKER_REGISTER("mat_vec");
+		}
 
-        #pragma omp parallel
-                {
-                    LIKWID_MARKER_START("mat_vec");
-                    mops::mat_vec(alpha, beta, &y, &A, &x, &z);
-                    LIKWID_MARKER_STOP("mat_vec");
-                }
-                LIKWID_MARKER_CLOSE;
-        #else
-                mops::mat_vec(alpha, beta, &y, &A, &x, &z);
-        #endif
-        #ifdef DEBUG
+#pragma omp parallel
+		{
+			LIKWID_MARKER_START("mat_vec");
+			mops::mat_vec(alpha, beta, y, A, x, z);
+			LIKWID_MARKER_STOP("mat_vec");
+		}
+		LIKWID_MARKER_CLOSE;
+#else
+                mops::mat_vec(alpha, beta, y, A, x, z);
+#endif
+#ifdef DEBUG
                 t0 = Clock::now();
-        #endif
+#endif
                 mops::write_dense_vector(y, output_file);
-        #ifdef DEBUG
+#ifdef DEBUG
                 d = Clock::now() - t0;
 
                 std::cout << "Write time: " << d.count() << " [s]\n";
@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
                 std::cout << "Write BW: "
                           << static_cast<double>(fs::file_size(input_file)) / d.count()
                           << " [b/s]\n";
-        #endif
+#endif
             }
 
         }
