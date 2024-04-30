@@ -53,6 +53,27 @@ class Matrix {
 	}
 };
 
+    template<typename T>
+    class SparseMatrixCsr {
+        std::vector<int> _row_ptrs;
+        std::vector<int> _col_indices;
+        std::vector<T> _data;
+        int _num_rows;
+        int _num_cols;
+
+    public:
+        MatrixType type = MatrixType::sparse;
+        SparseMatrixCsr(int num_rows, int num_cols, std::vector<int> row_ptrs, std::vector<int> col_indices, std::vector<T> data)
+                : _num_rows(num_rows), _num_cols(num_cols), _row_ptrs(std::move(row_ptrs)),
+                  _col_indices(std::move(col_indices)), _data(std::move(data)) {}
+
+        [[nodiscard]] inline int get_rows() const { return _num_rows; }
+        [[nodiscard]] inline int get_cols() const { return _num_cols; }
+        [[nodiscard]] inline const std::vector<int>& get_row_ptrs() const { return _row_ptrs; }
+        [[nodiscard]] inline const std::vector<int>& get_col_indices() const { return _col_indices; }
+        [[nodiscard]] inline const std::vector<T>& get_data() const { return _data; }
+    };
+
 
     template<typename T>
     class SparseMatrixCoo {
@@ -90,6 +111,35 @@ class Matrix {
             _cols.push_back(col);
             _data.push_back(value);
         }
+
+        SparseMatrixCsr<T> to_csr() const {
+            std::vector<int> row_ptrs(_num_rows + 1, 0);
+            std::vector<int> col_indices(_num_non_zero);
+            std::vector<T> data(_num_non_zero);
+
+            for (int i = 0; i < _num_non_zero; ++i)
+                row_ptrs[_rows[i] + 1]++;
+
+            for (int i = 1; i <= _num_rows; ++i)
+                row_ptrs[i] += row_ptrs[i - 1];
+
+            for (int i = 0; i < _num_non_zero; ++i) {
+                int row = _rows[i];
+                int idx = row_ptrs[row];
+                col_indices[idx] = _cols[i];
+                data[idx] = _data[i];
+                row_ptrs[row]++;
+            }
+
+            for (int i = _num_rows - 1; i >= 0; --i)
+                row_ptrs[i + 1] = row_ptrs[i];
+
+            row_ptrs[0] = 0;
+
+            return SparseMatrixCsr<T>(_num_rows, _num_cols, std::move(row_ptrs), std::move(col_indices), std::move(data));
+        }
     };
+
+
 } // namespace mops
 #endif
