@@ -1,0 +1,5 @@
+Filename;FLOPS
+dense_matrix_10000x10000.mtx;100000
+dense_matrix_1000x1000.mtx;10000
+dense_matrix_100x100.mtx;1000
+dense_matrix_10x10.mtx;100
